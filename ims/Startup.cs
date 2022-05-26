@@ -26,7 +26,7 @@ namespace ims
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+                options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
 
             // Get Identity Default Options
             IConfigurationSection identityDefaultOptionsConfigurationSection = Configuration.GetSection("IdentityDefaultOptions");
@@ -97,7 +97,7 @@ namespace ims
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env,DbContext context)
         {
             if (env.IsDevelopment())
             {
@@ -109,6 +109,8 @@ namespace ims
             {
                 app.UseExceptionHandler("/Home/Error");
             }
+           var scope = app.ApplicationServices.CreateScope().ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            scope.Database.MigrateAsync();
 
             app.UseStaticFiles();
             app.UseAuthentication();
